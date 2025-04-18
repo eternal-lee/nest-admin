@@ -3,7 +3,7 @@ import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { Logger, ValidationPipe } from '@nestjs/common';
 
-const port = process.env.PORT ?? 3000;
+const port = process.env.port ?? 3000;
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
   // 设置所有 api 访问前缀
