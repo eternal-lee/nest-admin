@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { Logger, ValidationPipe } from '@nestjs/common';
+import { generateDocument } from './swagger';
 
 const port = process.env.port ?? 3000;
 async function bootstrap() {
@@ -9,16 +9,7 @@ async function bootstrap() {
   // 设置所有 api 访问前缀
   app.setGlobalPrefix('/api');
 
-  // 接口文档 swagger 参数
-  const options = new DocumentBuilder()
-    .setTitle('Swagger接口文档')
-    .setDescription('接口 API 文档')
-    .setVersion('1.1.0')
-    .addBearerAuth()
-    .build();
-  const document = SwaggerModule.createDocument(app, options);
-  // 设置 swagger 网址
-  SwaggerModule.setup('docs', app, document);
+  generateDocument(app);
 
   // 自动验证（以后等系统完善后可自定义）
   // 注册并配置全局验证管道
