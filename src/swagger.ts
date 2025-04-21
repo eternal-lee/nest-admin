@@ -10,5 +10,11 @@ export const generateDocument = (app: INestApplication) => {
     .build();
   const document = SwaggerModule.createDocument(app, options);
   // 设置 swagger 网址
-  SwaggerModule.setup('docs', app, document);
+  SwaggerModule.setup('docs', app, document, {
+    swaggerOptions: {
+      persistAuthorization: false,
+      docExpansion: 'none', // 按需展开文档
+      defaultModelsExpandDepth: -1, // 禁用 Models 的展开
+    },
+  });
 };

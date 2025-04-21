@@ -25,7 +25,7 @@ export class CreateUserDto {
   @IsString({ message: '不是有效的数据' })
   @IsNotEmpty({ message: '用户名不能为空' })
   @MinLength(3, { message: '用户名至少需要三位' })
-  readonly account: string;
+  readonly username: string;
 
   @ApiProperty()
   @IsString({ message: '密码不是有效的数据' })
