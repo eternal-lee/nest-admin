@@ -1,12 +1,11 @@
 import { Module } from '@nestjs/common';
-import { CatsModule } from './stystem/cats/cats.module';
 import { AuthModule } from './stystem/auth/auth.module';
 import { UserModule } from './stystem/user/user.module';
 // import { AppController } from './app.controller';
 // import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 
-const moduleArr = [CatsModule, AuthModule, UserModule];
+const moduleArr = [AuthModule, UserModule];
 @Module({
   imports: [...moduleArr, ConfigModule.forRoot()],
   // controllers: [AppController],
