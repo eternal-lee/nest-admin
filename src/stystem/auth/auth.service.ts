@@ -2,7 +2,6 @@ import { BadRequestException, HttpException, HttpStatus, Injectable, Logger, Una
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
 import { ResponseData } from 'src/common/interfaces/result.interface';
-import { CreateUserDto } from './dto/create-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -12,25 +11,31 @@ export class AuthService {
   ) {}
 
   // 新用户注册
-  async create(dto: CreateUserDto): Promise<ResponseData> {
+  async create(userData): Promise<ResponseData> {
     // 检查用户名是否存在
-    const user = await this.usersService.findOne(dto.username);
+    const user = await this.usersService.findOne(userData.username);
     const existing = !!user || false;
     if (existing) throw new HttpException('账号已存在', HttpStatus.BAD_REQUEST);
     // 判断密码是否相等
-    if (dto.password !== dto.confirmPassword)
+    if (userData.password !== userData.confirmPassword)
       throw new HttpException(
         '两次输入密码不一致，请重试',
         HttpStatus.BAD_REQUEST,
       );
     
-    await this.usersService.addUser(dto) // 创建成功，加入用户信息
-    return Promise.resolve({ statusCode: 200, message: '注册成功', data: dto });
+    await this.usersService.addUser(userData) // 创建成功，加入用户信息
+    return Promise.resolve({ statusCode: 200, message: '注册成功', data: userData });
   }
 
   // 登录
   async signIn(username, pass): Promise<ResponseData> {
     const user = await this.usersService.findOne(username);
+    const existing = !!user || false;
+    if (!existing) return {
+      statusCode: 200,
+      message: '登录失败，请确认用户名或密码是否正确',
+      data: null,
+    }
     if (
       username !== user.username ||
       pass !== user.password

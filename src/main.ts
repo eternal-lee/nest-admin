@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { generateDocument } from './swagger';
+import { GlobalGuard } from './common/global/global.guard';
 
 const port = process.env.port ?? 3000;
 async function bootstrap() {
@@ -22,6 +23,9 @@ async function bootstrap() {
       forbidUnknownValues: true,
     }),
   );
+
+  // 注册全局守卫
+  app.useGlobalGuards(new GlobalGuard())
   // 启动程序，监听端口
   await app.listen(port);
   Logger.log(`http://localhost:${port}`, '服务启动成功');

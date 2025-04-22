@@ -7,6 +7,7 @@ export const generateDocument = (app: INestApplication) => {
     .setTitle('Swagger接口文档')
     .setDescription('接口 API 文档')
     .setVersion('1.1.0')
+    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, options);
   // 设置 swagger 网址
