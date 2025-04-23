@@ -1,6 +1,6 @@
 export interface ResponseData {
-  statusCode: number;
-  message?: string;
-  data?: any;
+  statusCode: number
+  message?: string
+  data?: any
   [key: string]: unknown
 }
