@@ -7,13 +7,13 @@ module.exports = {
       watch: true,
       env: {
         PORT: 3000,
-        NODE_ENV: 'development',
+        NODE_ENV: 'development'
       },
       env_production: {
         PORT: 80,
-        NODE_ENV: 'production',
-      },
-    },
+        NODE_ENV: 'production'
+      }
+    }
   ],
 
   deploy: {
@@ -26,7 +26,7 @@ module.exports = {
       'pre-deploy-local': '',
       'post-deploy':
         'npm install && pm2 reload ecosystem.config.js --env production',
-      'pre-setup': '',
-    },
-  },
-};
+      'pre-setup': ''
+    }
+  }
+}
