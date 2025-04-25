@@ -8,11 +8,8 @@ export class GlobalGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<Request>()
     const token = this.extractTokenFromHeader(request)
-    if (!token) {
-      console.warn('无token')
-      return false
-    }
-    console.log('这里是全局守卫。。。。。。。。。')
+    console.log('这里是全局守卫。。。。。。。。。', token)
+
     return true
   }
 

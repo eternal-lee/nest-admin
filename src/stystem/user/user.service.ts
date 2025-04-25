@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common'
-import { UserInterface } from 'src/common/interfaces'
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
+import { PwdParamInterface, UserInterface } from 'src/common/interfaces'
 
 @Injectable()
 export class UserService {
@@ -28,6 +28,7 @@ export class UserService {
     return Promise.resolve(user)
   }
 
+  // 新增用户
   addUser(dto: UserInterface) {
     const _dto = {
       ...dto,
@@ -38,6 +39,7 @@ export class UserService {
     return this.users
   }
 
+  // 用户列表
   getList(pageNum, pageSize) {
     const stIndex = (pageNum - 1) * pageSize
     const endIndex = pageNum * pageSize
@@ -48,9 +50,23 @@ export class UserService {
     })
   }
 
+  // 单个用户信息
   getUserInfo(id) {
     const info = this.users.find((item) => item.userId == id)
 
     return Promise.resolve(info)
+  }
+
+  // 修改密码
+  modifyPwd(param: PwdParamInterface): Promise<boolean> {
+    const index = this.users.findIndex((item) => item.userId == param.userId)
+    if (this.users[index].password != param.old_password) {
+      throw new HttpException(
+        '旧密码输入不正确，请重新输入',
+        HttpStatus.BAD_REQUEST
+      )
+    }
+    this.users[index].password = String(param.new_password)
+    return Promise.resolve(true)
   }
 }

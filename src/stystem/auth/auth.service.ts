@@ -79,7 +79,7 @@ export class AuthService {
   }
 
   // 双token刷新
-  refresh(token: string): Promise<ResponseData> {
+  refreshToken(token: string): Promise<ResponseData> {
     if (!token) {
       throw new BadRequestException('token无效')
     }
@@ -117,5 +117,9 @@ export class AuthService {
       Logger.error(error)
       throw new UnauthorizedException('token 已失效，请重新登录')
     }
+  } // 退出
+
+  loginOut(token: string) {
+    this.jwtService.decode(token)
   }
 }
