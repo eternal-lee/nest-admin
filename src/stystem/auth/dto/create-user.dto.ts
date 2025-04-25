@@ -4,7 +4,8 @@ import {
   IsNotEmpty,
   MinLength,
   IsBoolean,
-  IsEmail
+  IsEmail,
+  Length
 } from 'class-validator'
 import { ApiProperty } from '@nestjs/swagger'
 
@@ -32,6 +33,9 @@ export class CreateUserDto {
   @ApiProperty({ example: '' })
   @IsString({ message: '密码不是有效的数据' })
   @IsNotEmpty({ message: '密码不能为空' })
+  @Length(6, 20, {
+    message: '密码长度在6-20位之间'
+  })
   password: string
 
   @ApiProperty({ example: '' })
@@ -46,6 +50,9 @@ export class CreateUserDto {
 
   @ApiProperty({ example: '' })
   @IsString({ message: '确认密码不是有效数据' })
+  @Length(6, 20, {
+    message: '密码长度在6-20位之间'
+  })
   confirmPassword: string
 
   @ApiProperty({ example: '' })

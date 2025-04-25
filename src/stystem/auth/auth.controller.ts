@@ -34,6 +34,16 @@ export class AuthController {
   }
 
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @Post('/login/logout')
+  @ApiOperation({ summary: '退出登录' })
+  loginout(@Request() request) {
+    console.warn(request)
+
+    return this.authService.loginOut('a')
+  }
+
+  @UseGuards(AuthGuard)
   @Get('profile')
   @ApiBearerAuth()
   @ApiOperation({ summary: '测试token' })
