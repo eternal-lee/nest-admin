@@ -1,11 +1,4 @@
-import {
-  BadRequestException,
-  HttpException,
-  HttpStatus,
-  Injectable,
-  Logger,
-  UnauthorizedException
-} from '@nestjs/common'
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { UserService } from '../user/user.service'
 import { ResponseData } from 'src/common/interfaces/result.interface'
@@ -33,7 +26,7 @@ export class AuthService {
 
     this.usersService.addUser(userData) // 创建成功，加入用户信息
     return Promise.resolve({
-      statusCode: 200,
+      statusCode: HttpStatus.OK,
       message: '注册成功',
       data: userData
     })
@@ -45,7 +38,7 @@ export class AuthService {
     const existing = !!user || false
     if (!existing)
       return {
-        statusCode: 200,
+        statusCode: HttpStatus.UNAUTHORIZED,
         message: '登录失败，请确认用户名或密码是否正确',
         data: null
       }
@@ -70,7 +63,7 @@ export class AuthService {
     )
 
     return {
-      statusCode: 200,
+      statusCode: HttpStatus.OK,
       message: '登录成功',
       access_token: accessToken,
       refresh_token: refreshToken,
@@ -81,7 +74,14 @@ export class AuthService {
   // 双token刷新
   refreshToken(token: string): Promise<ResponseData> {
     if (!token) {
-      throw new BadRequestException('token无效')
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.NOT_FOUND,
+          message: '没有携带token'
+        },
+        HttpStatus.OK
+      )
+      // throw new BadRequestException('token无效')
     }
 
     try {
@@ -107,19 +107,37 @@ export class AuthService {
       )
 
       const ret = {
-        statusCode: 200,
+        statusCode: HttpStatus.OK,
         message: '刷新成功',
         access_token: accessToken,
         refresh_token: refreshToken
       }
       return Promise.resolve(ret)
-    } catch (error) {
-      Logger.error(error)
-      throw new UnauthorizedException('token 已失效，请重新登录')
+    } catch {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.NOT_ACCEPTABLE,
+          message: 'token 已失效，请重新登录'
+        },
+        HttpStatus.OK
+      )
     }
   } // 退出
 
   loginOut(token: string) {
-    this.jwtService.decode(token)
+    if (!token) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.NOT_FOUND,
+          message: '没有携带token'
+        },
+        HttpStatus.OK
+      )
+    }
+    this.jwtService.decode(token) // 解码
+    return Promise.resolve({
+      statusCode: HttpStatus.OK,
+      message: '成功退出'
+    })
   }
 }

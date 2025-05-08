@@ -1,6 +1,5 @@
 import {
   IsString,
-  IsNumber,
   IsNotEmpty,
   MinLength,
   IsBoolean,
@@ -59,10 +58,6 @@ export class CreateUserDto {
   @IsString({ message: '头像不是有效数据' })
   @IsNotEmpty({ message: '头像地址不能为空' })
   readonly avatar: string
-
-  @ApiProperty()
-  @IsNumber()
-  readonly deptId: number
 
   @ApiProperty()
   @IsBoolean({ message: '用户状态必须为布尔类型' })

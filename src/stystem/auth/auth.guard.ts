@@ -1,8 +1,9 @@
 import {
   CanActivate,
   ExecutionContext,
-  Injectable,
-  UnauthorizedException
+  HttpException,
+  HttpStatus,
+  Injectable
 } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { jwtConstants } from '../../common/jwt/constants'
@@ -16,7 +17,13 @@ export class AuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<Request>()
     const token = this.extractTokenFromHeader(request)
     if (!token) {
-      throw new UnauthorizedException()
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.NOT_FOUND,
+          message: '请确认token是否存在'
+        },
+        HttpStatus.OK
+      )
     }
     try {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -28,7 +35,13 @@ export class AuthGuard implements CanActivate {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       request['user'] = payload
     } catch {
-      throw new UnauthorizedException()
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.NOT_ACCEPTABLE,
+          message: 'token已失效'
+        },
+        HttpStatus.OK
+      )
     }
     return true
   }
