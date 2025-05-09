@@ -1,8 +1,8 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { UserService } from '../user/user.service'
-import { ResponseData } from 'src/common/interfaces/result.interface'
 import { UserInterface } from 'src/common/interfaces'
+import { ResultData } from 'src/common/utils/result'
 
 @Injectable()
 export class AuthService {
@@ -12,38 +12,35 @@ export class AuthService {
   ) {}
 
   // 新用户注册
-  async create(userData: UserInterface): Promise<ResponseData> {
+  async create(userData: UserInterface): Promise<ResultData> {
     // 检查用户名是否存在
     const user = await this.usersService.findOne(String(userData.username))
     const existing = !!user || false
     if (existing) throw new HttpException('账号已存在', HttpStatus.BAD_REQUEST)
     // 判断密码是否相等
     if (userData.password !== userData.confirmPassword)
-      throw new HttpException(
-        '两次输入密码不一致，请重试',
-        HttpStatus.BAD_REQUEST
+      return ResultData.fail(
+        HttpStatus.BAD_REQUEST,
+        '两次输入密码不一致，请重试'
       )
 
     this.usersService.addUser(userData) // 创建成功，加入用户信息
-    return Promise.resolve({
-      statusCode: HttpStatus.OK,
-      message: '注册成功',
-      data: userData
-    })
+    return ResultData.ok({ data: userData }, '注册成功')
   }
 
   // 登录
-  async signIn(username, pass): Promise<ResponseData> {
+  async signIn(username, pass): Promise<ResultData> {
     const user = await this.usersService.findOne(String(username || ''))
     const existing = !!user || false
     if (!existing)
-      return {
-        statusCode: HttpStatus.UNAUTHORIZED,
-        message: '登录失败，请确认用户名或密码是否正确',
-        data: null
-      }
+      return ResultData.fail(
+        HttpStatus.UNAUTHORIZED,
+        '登录失败，请确认用户名或密码是否正确',
+        null
+      )
     if (!user || username !== user.username || pass !== user.password) {
-      throw new HttpException('用户名或密码错误', HttpStatus.BAD_REQUEST)
+      return ResultData.fail(HttpStatus.BAD_REQUEST, '用户名或密码错误')
+      // throw new HttpException('用户名或密码错误', HttpStatus.BAD_REQUEST)
     }
 
     const payload = { userId: user.userId, username: user.username }
@@ -62,27 +59,22 @@ export class AuthService {
       }
     )
 
-    return {
-      statusCode: HttpStatus.OK,
-      message: '登录成功',
-      access_token: accessToken,
-      refresh_token: refreshToken,
-      data: user
-    }
+    return ResultData.ok(
+      {
+        data: user,
+        access_token: accessToken,
+        refresh_token: refreshToken
+      },
+      '登录成功'
+    )
   }
 
   // 双token刷新
-  refreshToken(token: string): Promise<ResponseData> {
-    if (!token) {
-      throw new HttpException(
-        {
-          statusCode: HttpStatus.NOT_FOUND,
-          message: '没有携带token'
-        },
-        HttpStatus.OK
+  refreshToken(token: string): Promise<ResultData> {
+    if (!token)
+      return Promise.resolve(
+        ResultData.fail(HttpStatus.NOT_FOUND, '没有携带token')
       )
-      // throw new BadRequestException('token无效')
-    }
 
     try {
       const data = this.jwtService.verify<Record<string, unknown>>(token) // 解析token
@@ -107,37 +99,23 @@ export class AuthService {
       )
 
       const ret = {
-        statusCode: HttpStatus.OK,
-        message: '刷新成功',
-        access_token: accessToken,
-        refresh_token: refreshToken
+        data: { access_token: accessToken, refresh_token: refreshToken }
       }
-      return Promise.resolve(ret)
+      return Promise.resolve(ResultData.ok(ret, '刷新成功'))
     } catch {
-      throw new HttpException(
-        {
-          statusCode: HttpStatus.NOT_ACCEPTABLE,
-          message: 'token 已失效，请重新登录'
-        },
-        HttpStatus.OK
+      return Promise.resolve(
+        ResultData.fail(HttpStatus.NOT_ACCEPTABLE, 'token 已失效，请重新登录')
       )
     }
   } // 退出
 
-  loginOut(token: string) {
-    if (!token) {
-      throw new HttpException(
-        {
-          statusCode: HttpStatus.NOT_FOUND,
-          message: '没有携带token'
-        },
-        HttpStatus.OK
+  loginOut(token: string): Promise<ResultData> {
+    if (!token)
+      return Promise.resolve(
+        ResultData.fail(HttpStatus.NOT_FOUND, '没有携带token')
       )
-    }
+
     this.jwtService.decode(token) // 解码
-    return Promise.resolve({
-      statusCode: HttpStatus.OK,
-      message: '成功退出'
-    })
+    return Promise.resolve(ResultData.ok(null, '成功退出'))
   }
 }

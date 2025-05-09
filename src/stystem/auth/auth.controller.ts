@@ -35,24 +35,24 @@ export class AuthController {
   @Post('register')
   @ApiOperation({ summary: '用户注册' })
   async create(@Body() userData: CreateUserDto) {
-    return this.authService.create({ ...userData } as UserInterface)
+    return await this.authService.create({ ...userData } as UserInterface)
   }
 
   @HttpCode(HttpStatus.OK)
   @Post('login')
   @ApiOperation({ summary: '登录' })
-  signIn(@Body() signInDto: LoginAuthDto) {
-    return this.authService.signIn(signInDto.username, signInDto.password)
+  async signIn(@Body() signInDto: LoginAuthDto) {
+    return await this.authService.signIn(signInDto.username, signInDto.password)
   }
 
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
   @Post('/login/logout')
   @ApiOperation({ summary: '退出登录' })
-  loginout(@Req() req: { headers: { authorization?: string } }) {
+  async loginout(@Req() req: { headers: { authorization?: string } }) {
     const token = req.headers.authorization?.split(' ')[1] ?? ''
 
-    return this.authService.loginOut(token)
+    return await this.authService.loginOut(token)
   }
 
   @Post('/refresh')
@@ -65,10 +65,10 @@ export class AuthController {
     required: true,
     description: '刷新token'
   })
-  refreshToken(@Headers() headers: { 'refresh-token'?: string }) {
+  async refreshToken(@Headers() headers: { 'refresh-token'?: string }) {
     const token = headers['refresh-token']?.split(' ')[1] ?? ''
 
-    return this.authService.refreshToken(token)
+    return await this.authService.refreshToken(token)
   }
 
   @UseGuards(AuthGuard)

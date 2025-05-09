@@ -1,5 +1,6 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
+import { HttpStatus, Injectable } from '@nestjs/common'
 import { PwdParamInterface, UserInterface } from 'src/common/interfaces'
+import { ResultData } from 'src/common/utils/result'
 
 @Injectable()
 export class UserService {
@@ -23,7 +24,7 @@ export class UserService {
     }
   ]
 
-  findOne(username: string): Promise<UserInterface | undefined> {
+  async findOne(username: string): Promise<UserInterface | undefined> {
     const user = this.users.find((user) => user.username === username)
     return Promise.resolve(user)
   }
@@ -36,37 +37,43 @@ export class UserService {
     }
     const item = JSON.parse(JSON.stringify(_dto)) as UserInterface
     this.users.push(item)
-    return this.users
+    return ResultData.ok({ data: item }, '注册成功')
   }
 
   // 用户列表
-  getList(pageNum, pageSize) {
+  async getList(pageNum: number, pageSize: number) {
     const stIndex = (pageNum - 1) * pageSize
     const endIndex = pageNum * pageSize
 
-    return Promise.resolve({
-      total: this.users.length,
-      data: this.users.slice(stIndex, endIndex)
-    })
+    const data = this.users.slice(stIndex, endIndex)
+    return Promise.resolve(
+      ResultData.ok(
+        {
+          pageNum,
+          pageSize,
+          total: this.users.length,
+          data: data
+        },
+        '查询成功'
+      )
+    )
   }
 
   // 单个用户信息
-  getUserInfo(id) {
+  async getUserInfo(id) {
     const info = this.users.find((item) => item.userId == id)
-
-    return Promise.resolve(info)
+    return Promise.resolve(ResultData.ok({ data: info }, '查询成功'))
   }
 
   // 修改密码
-  modifyPwd(param: PwdParamInterface): Promise<boolean> {
+  async modifyPwd(param: PwdParamInterface): Promise<ResultData> {
     const index = this.users.findIndex((item) => item.userId == param.userId)
     if (this.users[index].password != param.old_password) {
-      throw new HttpException(
-        '旧密码输入不正确，请重新输入',
-        HttpStatus.BAD_REQUEST
+      return Promise.resolve(
+        ResultData.fail(HttpStatus.BAD_REQUEST, '旧密码输入不正确，请重新输入')
       )
     }
     this.users[index].password = String(param.new_password)
-    return Promise.resolve(true)
+    return Promise.resolve(ResultData.ok(null, '修改成功'))
   }
 }
