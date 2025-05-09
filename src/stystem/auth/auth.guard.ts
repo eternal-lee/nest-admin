@@ -19,8 +19,8 @@ export class AuthGuard implements CanActivate {
     if (!token) {
       throw new HttpException(
         {
-          statusCode: HttpStatus.NOT_FOUND,
-          message: '请确认token是否存在'
+          code: HttpStatus.NOT_FOUND,
+          msg: '请确认token是否存在'
         },
         HttpStatus.OK
       )
@@ -37,8 +37,8 @@ export class AuthGuard implements CanActivate {
     } catch {
       throw new HttpException(
         {
-          statusCode: HttpStatus.NOT_ACCEPTABLE,
-          message: 'token已失效'
+          code: HttpStatus.NOT_ACCEPTABLE,
+          msg: 'token已失效'
         },
         HttpStatus.OK
       )
