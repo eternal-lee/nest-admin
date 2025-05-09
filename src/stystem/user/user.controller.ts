@@ -20,12 +20,12 @@ import { AuthGuard } from '../auth/auth.guard'
 import { PwdParam } from './dto/modify-pwd.dto'
 
 @ApiTags('user')
+@UseGuards(AuthGuard)
+@ApiBearerAuth()
 @Controller('user')
 export class UserController {
   constructor(private usersService: UserService) {}
 
-  @UseGuards(AuthGuard)
-  @ApiBearerAuth()
   @Post('/modifyPwd')
   @ApiOperation({ summary: '修改密码' })
   async modifyPwd(@Body() pwdParam: PwdParam) {
@@ -34,12 +34,7 @@ export class UserController {
       old_password: pwdParam.old_password,
       new_password: pwdParam.new_password
     }
-    const isBol = await this.usersService.modifyPwd(param)
-    if (isBol)
-      return {
-        statusCode: 200,
-        message: '修改成功'
-      }
+    return await this.usersService.modifyPwd(param)
   }
 
   @Get('list')
@@ -49,15 +44,7 @@ export class UserController {
     @Query('pageSize') pageSize: number = 10,
     @Query('pageNum', new ParseIntPipe()) pageNum: number
   ) {
-    const result = await this.usersService.getList(pageNum, pageSize)
-    return {
-      statusCode: 200,
-      message: '查询成功',
-      pageNum,
-      pageSize,
-      total: result.total,
-      data: result.data
-    }
+    return await this.usersService.getList(pageNum, pageSize)
   }
 
   @Get('user/:id')
@@ -65,11 +52,6 @@ export class UserController {
   @ApiParam({ name: 'id', required: true, description: '用户ID', type: Number })
   async findOne(@Param() param: { id: number }) {
     const id: number = param.id
-    const data = await this.usersService.getUserInfo(id)
-    return {
-      statusCode: 200,
-      message: '查询成功',
-      data: data
-    }
+    return await this.usersService.getUserInfo(id)
   }
 }
