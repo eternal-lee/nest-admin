@@ -24,7 +24,7 @@ export class AuthGuard implements CanActivate {
       throw new HttpException(
         {
           code: HttpStatus.NOT_FOUND,
-          msg: '请确认token是否存在'
+          msg: '请确认token是否存在【E2】'
         },
         HttpStatus.OK
       )
@@ -34,7 +34,10 @@ export class AuthGuard implements CanActivate {
         await this.jwtService.verifyAsync(token, {
           secret: jwtConstants.secret
         })
-      await this.validate(payload)
+
+      // 验证redis的token
+      await this.redisService.validateToken(payload, token)
+
       // 💡 We're assigning the payload to the request object here
       // so that we can access it in our route handlers
       request['user'] = payload
@@ -42,37 +45,12 @@ export class AuthGuard implements CanActivate {
       throw new HttpException(
         {
           code: HttpStatus.NOT_ACCEPTABLE,
-          msg: 'token已失效'
+          msg: 'token已失效【F0】'
         },
         HttpStatus.OK
       )
     }
     return true
-  }
-
-  async validate(payload: Record<string, unknown>) {
-    if (!payload.userId)
-      throw new HttpException(
-        {
-          code: HttpStatus.NOT_FOUND,
-          msg: 'token已过期'
-        },
-        HttpStatus.OK
-      )
-    //从redis中取对应的token
-    const cacheToken = await this.redisService.get(
-      `accessToken-${payload.userId as string | number}`
-    ) //取不出来，说明已过期
-    if (!cacheToken) {
-      throw new HttpException(
-        {
-          code: HttpStatus.NOT_ACCEPTABLE,
-          msg: 'token已过期'
-        },
-        HttpStatus.OK
-      )
-    }
-    return payload
   }
 
   private extractTokenFromHeader(request: Request): string | undefined {

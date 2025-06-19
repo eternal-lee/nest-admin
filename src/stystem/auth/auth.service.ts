@@ -18,12 +18,13 @@ export class AuthService {
     // 检查用户名是否存在
     const user = await this.usersService.findOne(String(userData.username))
     const existing = !!user || false
-    if (existing) throw new HttpException('账号已存在', HttpStatus.BAD_REQUEST)
+    if (existing)
+      throw new HttpException('账号已存在【E3】', HttpStatus.BAD_REQUEST)
     // 判断密码是否相等
     if (userData.password !== userData.confirmPassword)
       return ResultData.fail(
         HttpStatus.BAD_REQUEST,
-        '两次输入密码不一致，请重试'
+        '两次输入密码不一致，请重试【E4】'
       )
 
     this.usersService.addUser(userData) // 创建成功，加入用户信息
@@ -41,7 +42,7 @@ export class AuthService {
         null
       )
     if (!user || username !== user.username || pass !== user.password) {
-      return ResultData.fail(HttpStatus.BAD_REQUEST, '用户名或密码错误')
+      return ResultData.fail(HttpStatus.BAD_REQUEST, '用户名或密码错误【E5】')
       // throw new HttpException('用户名或密码错误', HttpStatus.BAD_REQUEST)
     }
 
@@ -52,30 +53,21 @@ export class AuthService {
     })
 
     // 根据username生成refreshToken
-    const refreshToken = this.jwtService.sign(
-      {
-        username: payload.username
-      },
-      {
-        expiresIn: '7d' // 7天过期
-      }
-    )
-    await this.redisService.set(
-      'accessToken-' + payload.userId,
+    const refreshToken = this.jwtService.sign(payload, {
+      expiresIn: '7d' // 7天过期
+    })
+
+    await this.redisService.setToken({
+      payload,
       accessToken,
-      60 * 30
-    )
-    await this.redisService.set(
-      'refreshToken-' + payload.userId,
-      refreshToken,
-      60 * 60 * 24 * 7
-    )
+      refreshToken
+    })
 
     return ResultData.ok(
       {
         data: user,
         access_token: accessToken,
-        refresh_token: refreshToken
+        refresh_token: 'Bearer ' + refreshToken
       },
       '登录成功'
     )
@@ -85,57 +77,51 @@ export class AuthService {
   async refreshToken(token: string): Promise<ResultData> {
     if (!token)
       return Promise.resolve(
-        ResultData.fail(HttpStatus.NOT_FOUND, '没有携带token')
+        ResultData.fail(HttpStatus.NOT_FOUND, '没有携带token【F2】')
       )
 
     try {
-      const data = this.jwtService.verify<Record<string, unknown>>(token) // 解析token
-      const _reToken = await this.redisService.get(
-        'refreshToken-' + String(data.userId)
-      )
-      if (_reToken != token) {
-        return Promise.resolve(
-          ResultData.fail(HttpStatus.NOT_FOUND, 'token已失效')
-        )
-      }
+      const payload = this.jwtService.verify<Record<string, unknown>>(token) // 解析token
+      // 验证redis的token
+      await this.redisService.validateToken(payload, token, 'refreshToken')
 
-      const accessToken = this.jwtService.sign(
-        {
-          userId: data.id,
-          username: data.username
-        },
-        {
-          expiresIn: '30m'
-        }
-      )
-
-      const refreshToken = this.jwtService.sign(
-        {
-          username: data.username
-        },
-        {
-          expiresIn: '7d'
-        }
-      )
+      const accessToken = this.jwtService.sign({
+        userId: payload.userId,
+        username: payload.username
+      })
+      const refreshToken = this.jwtService.sign({
+        userId: payload.userId
+      })
+      await this.redisService.setToken({
+        payload,
+        accessToken,
+        refreshToken
+      })
 
       const ret = {
-        data: { access_token: accessToken, refresh_token: refreshToken }
+        data: {
+          access_token: accessToken,
+          refresh_token: 'Bearer ' + refreshToken
+        }
       }
       return Promise.resolve(ResultData.ok(ret, '刷新成功'))
     } catch {
       return Promise.resolve(
-        ResultData.fail(HttpStatus.NOT_ACCEPTABLE, 'token 已失效，请重新登录')
+        ResultData.fail(HttpStatus.NOT_ACCEPTABLE, 'token 已失效【F3】')
       )
     }
   } // 退出
 
-  loginOut(token: string): Promise<ResultData> {
+  async loginOut(token: string): Promise<ResultData> {
     if (!token)
       return Promise.resolve(
-        ResultData.fail(HttpStatus.NOT_FOUND, '没有携带token')
+        ResultData.fail(HttpStatus.NOT_FOUND, '没有携带token【E6】')
       )
-
-    this.jwtService.decode(token) // 解码
+    const payload = this.jwtService.verify<Record<string, unknown>>(token) // 解析token
+    // 验证redis的token
+    await this.redisService.validateToken(payload, token)
+    // 删除用户的token
+    await this.redisService.deleteAllToken(payload)
     return Promise.resolve(ResultData.ok(null, '成功退出'))
   }
 }
