@@ -82,7 +82,7 @@ export class AuthService {
   }
 
   // 双token刷新
-  refreshToken(token: string): Promise<ResultData> {
+  async refreshToken(token: string): Promise<ResultData> {
     if (!token)
       return Promise.resolve(
         ResultData.fail(HttpStatus.NOT_FOUND, '没有携带token')
@@ -90,6 +90,14 @@ export class AuthService {
 
     try {
       const data = this.jwtService.verify<Record<string, unknown>>(token) // 解析token
+      const _reToken = await this.redisService.get(
+        'refreshToken-' + String(data.userId)
+      )
+      if (_reToken != token) {
+        return Promise.resolve(
+          ResultData.fail(HttpStatus.NOT_FOUND, 'token已失效')
+        )
+      }
 
       const accessToken = this.jwtService.sign(
         {
