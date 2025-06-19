@@ -8,10 +8,14 @@ import {
 import { JwtService } from '@nestjs/jwt'
 import { jwtConstants } from '../../common/jwt/constants'
 import { Request } from 'express'
+import { RedisService } from '../redis/redis.service'
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private jwtService: JwtService) {}
+  constructor(
+    private jwtService: JwtService,
+    private redisService: RedisService
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>()
@@ -26,13 +30,13 @@ export class AuthGuard implements CanActivate {
       )
     }
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const payload = await this.jwtService.verifyAsync(token, {
-        secret: jwtConstants.secret
-      })
+      const payload: Record<string, unknown> =
+        await this.jwtService.verifyAsync(token, {
+          secret: jwtConstants.secret
+        })
+      await this.validate(payload)
       // 💡 We're assigning the payload to the request object here
       // so that we can access it in our route handlers
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       request['user'] = payload
     } catch {
       throw new HttpException(
@@ -44,6 +48,31 @@ export class AuthGuard implements CanActivate {
       )
     }
     return true
+  }
+
+  async validate(payload: Record<string, unknown>) {
+    if (!payload.userId)
+      throw new HttpException(
+        {
+          code: HttpStatus.NOT_FOUND,
+          msg: 'token已过期'
+        },
+        HttpStatus.OK
+      )
+    //从redis中取对应的token
+    const cacheToken = await this.redisService.get(
+      `accessToken-${payload.userId as string | number}`
+    ) //取不出来，说明已过期
+    if (!cacheToken) {
+      throw new HttpException(
+        {
+          code: HttpStatus.NOT_ACCEPTABLE,
+          msg: 'token已过期'
+        },
+        HttpStatus.OK
+      )
+    }
+    return payload
   }
 
   private extractTokenFromHeader(request: Request): string | undefined {

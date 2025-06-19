@@ -18,7 +18,6 @@ import { UserService } from './user.service'
 import { PwdParam } from './dto/modify-pwd.dto'
 
 @ApiTags('user')
-// @UseGuards(AuthGuard)
 @ApiBearerAuth()
 @Controller('user')
 export class UserController {

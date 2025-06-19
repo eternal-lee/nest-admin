@@ -13,8 +13,8 @@ import { AuthGuard } from '../auth/auth.guard'
       useFactory(): JwtModuleOptions {
         return {
           global: true,
-          secret: jwtConstants.secret, // Replace with your actual secret key
-          signOptions: { expiresIn: '16h' } // Example sign options
+          secret: jwtConstants.secret // Replace with your actual secret key
+          // signOptions: { expiresIn: '16h' } // Example sign options
         }
       }
     })
