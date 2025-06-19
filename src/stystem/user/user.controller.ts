@@ -5,7 +5,8 @@ import {
   Param,
   ParseIntPipe,
   Post,
-  Query
+  Query,
+  UseGuards
 } from '@nestjs/common'
 import {
   ApiBearerAuth,
@@ -16,8 +17,10 @@ import {
 } from '@nestjs/swagger'
 import { UserService } from './user.service'
 import { PwdParam } from './dto/modify-pwd.dto'
+import { AuthGuard } from '../auth/auth.guard'
 
 @ApiTags('user')
+@UseGuards(AuthGuard)
 @ApiBearerAuth()
 @Controller('user')
 export class UserController {
