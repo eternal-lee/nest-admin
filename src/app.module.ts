@@ -4,8 +4,9 @@ import { UserModule } from './stystem/user/user.module'
 // import { AppController } from './app.controller';
 // import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config'
+import { RedisModule } from './stystem/redis/redis.module' // 修正文件名
 
-const moduleArr = [AuthModule, UserModule]
+const moduleArr = [AuthModule, UserModule, RedisModule]
 @Module({
   imports: [...moduleArr, ConfigModule.forRoot()]
   // controllers: [AppController],

@@ -3,12 +3,14 @@ import { JwtService } from '@nestjs/jwt'
 import { UserService } from '../user/user.service'
 import { UserInterface } from 'src/common/interfaces'
 import { ResultData } from 'src/common/utils/result'
+import { RedisService } from '../redis/redis.service'
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UserService,
-    private jwtService: JwtService
+    private jwtService: JwtService,
+    private redisService: RedisService
   ) {}
 
   // 新用户注册
@@ -57,6 +59,16 @@ export class AuthService {
       {
         expiresIn: '7d' // 7天过期
       }
+    )
+    await this.redisService.set(
+      'accessToken-' + payload.userId,
+      accessToken,
+      60 * 30
+    )
+    await this.redisService.set(
+      'refreshToken-' + payload.userId,
+      refreshToken,
+      60 * 60 * 24 * 7
     )
 
     return ResultData.ok(
