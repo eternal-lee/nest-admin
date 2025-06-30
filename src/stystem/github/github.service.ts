@@ -3,6 +3,8 @@ import { HttpService } from '@nestjs/axios'
 import { firstValueFrom } from 'rxjs'
 import { prodKey } from './../../common/github/index'
 import { ResultData } from 'src/common/utils/result'
+import { RedisService } from '../redis/redis.service'
+import { JwtService } from '@nestjs/jwt'
 
 interface GithubTokenResponse {
   access_token: string
@@ -14,7 +16,11 @@ interface GithubTokenResponse {
 export class GithubService {
   private client_id: string
   private client_secret: string
-  constructor(private readonly httpService: HttpService) {
+  constructor(
+    private readonly httpService: HttpService,
+    private jwtService: JwtService,
+    private redisService: RedisService
+  ) {
     this.client_id = prodKey.client_id
     this.client_secret = prodKey.client_secret
   }
@@ -51,7 +57,36 @@ export class GithubService {
           headers: { Authorization: `token ${access_token}` }
         })
       )
-      return ResultData.ok(userRes.data)
+      const {
+        id = '',
+        avatar_url = '',
+        name = '',
+        login = ''
+      } = userRes.data as Record<string, unknown>
+      const payload = { userId: id, avatar_url, name, login }
+      // return ResultData.ok(userRes.data)
+      const accessToken = this.jwtService.sign(payload, {
+        expiresIn: '30m' // 30分钟过期
+      })
+
+      // 根据username生成refreshToken
+      const refreshToken = this.jwtService.sign(payload, {
+        expiresIn: '7d' // 7天过期
+      })
+      await this.redisService.setToken({
+        payload,
+        accessToken,
+        refreshToken
+      })
+
+      return ResultData.ok(
+        {
+          data: payload,
+          access_token: accessToken,
+          refresh_token: 'Bearer ' + refreshToken
+        },
+        '登录成功'
+      )
     } catch {
       return ResultData.fail(
         HttpStatus.INTERNAL_SERVER_ERROR,
