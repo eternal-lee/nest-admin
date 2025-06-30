@@ -4,7 +4,7 @@ import { Logger, ValidationPipe } from '@nestjs/common'
 import { generateDocument } from './swagger'
 import { GlobalGuard } from './common/global/global.guard'
 
-const port = process.env.port ?? 3000
+const port = process.env.port ?? 3001
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true })
   // 设置所有 api 访问前缀
