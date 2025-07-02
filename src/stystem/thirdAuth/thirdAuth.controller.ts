@@ -32,4 +32,13 @@ export class ThirdAuthController {
   async githubInfo(@Body() param: ThirdAuthDto) {
     return await this.thirdAuthService.githubAuth(param.code)
   }
+
+  // QQ授权
+  @HttpCode(HttpStatus.OK)
+  @Get('qq')
+  @ApiOperation({ summary: '获取QQ授权地址并自动跳转' })
+  async qqUrl(@Res() res: Response) {
+    const url = await this.thirdAuthService.getQQLoginUrl()
+    return res.redirect(url)
+  }
 }

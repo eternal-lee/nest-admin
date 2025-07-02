@@ -9,26 +9,23 @@ import { GithubTokenResponse } from 'src/common/interfaces'
 
 @Injectable()
 export class ThirdAuthService {
-  private client_id: string
-  private client_secret: string
-  private githubAuthUrl: string
+  private redirect_uri: string
   constructor(
     private readonly httpService: HttpService,
     private jwtService: JwtService,
     private redisService: RedisService
   ) {
-    this.client_id = prodAuthKey.client_github_id
-    this.client_secret = prodAuthKey.client_github_secret
-    this.githubAuthUrl = 'https://github.com/login/oauth/authorize'
+    this.redirect_uri = 'https://www.ieternal.top/callback'
   }
 
-  getGithubLoginUrl(redirectUri: string = 'https://www.ieternal.top/callback') {
+  getGithubLoginUrl(redirectUri: string = '') {
+    const githubAuthUrl = 'https://github.com/login/oauth/authorize'
     const queryString = new URLSearchParams({
-      client_id: this.client_id,
-      redirect_uri: redirectUri,
+      client_id: prodAuthKey.client_github_id,
+      redirect_uri: redirectUri || this.redirect_uri,
       state: 'github_auth'
     })
-    const _url = `${this.githubAuthUrl}?${queryString.toString()}`
+    const _url = `${githubAuthUrl}?${queryString.toString()}`
     return Promise.resolve(_url)
   }
 
@@ -42,8 +39,8 @@ export class ThirdAuthService {
         this.httpService.post<GithubTokenResponse>(
           'https://github.com/login/oauth/access_token',
           {
-            client_id: this.client_id,
-            client_secret: this.client_secret,
+            client_id: prodAuthKey.client_github_id,
+            client_secret: prodAuthKey.client_github_secret,
             code
           },
           { headers: { accept: 'application/json' } }
@@ -101,5 +98,19 @@ export class ThirdAuthService {
         null
       )
     }
+  }
+
+  // QQ
+  getQQLoginUrl(redirectUri: string = '') {
+    const qqAuthUrl = 'https://graph.qq.com/oauth2.0/authorize'
+    const queryString = new URLSearchParams({
+      client_id: prodAuthKey.client_qq_id,
+      redirect_uri: redirectUri || this.redirect_uri,
+      state: 'qq_auth',
+      response_type: 'code',
+      scope: 'get_user_info'
+    })
+    const _url = `${qqAuthUrl}?${queryString.toString()}`
+    return Promise.resolve(_url)
   }
 }
