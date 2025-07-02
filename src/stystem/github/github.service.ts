@@ -16,6 +16,7 @@ interface GithubTokenResponse {
 export class GithubService {
   private client_id: string
   private client_secret: string
+  private githubAuthUrl: string
   constructor(
     private readonly httpService: HttpService,
     private jwtService: JwtService,
@@ -23,6 +24,17 @@ export class GithubService {
   ) {
     this.client_id = prodKey.client_id
     this.client_secret = prodKey.client_secret
+    this.githubAuthUrl = 'https://github.com/login/oauth/authorize'
+  }
+
+  getGithubLoginUrl(redirectUri: string = 'https://www.ieternal.top/callback') {
+    const queryString = new URLSearchParams({
+      client_id: this.client_id,
+      redirect_uri: redirectUri,
+      state: 'github_auth'
+    })
+    const _url = `${this.githubAuthUrl}?${queryString.toString()}`
+    return Promise.resolve(_url)
   }
 
   async githubAuth(code: string = '') {
