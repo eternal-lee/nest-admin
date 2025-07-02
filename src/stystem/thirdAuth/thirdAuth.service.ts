@@ -1,19 +1,14 @@
 import { Injectable, HttpStatus } from '@nestjs/common'
 import { HttpService } from '@nestjs/axios'
 import { firstValueFrom } from 'rxjs'
-import { prodKey } from './../../common/github/index'
+import { prodAuthKey } from '../../common/thirdAuth/index'
 import { ResultData } from 'src/common/utils/result'
 import { RedisService } from '../redis/redis.service'
 import { JwtService } from '@nestjs/jwt'
-
-interface GithubTokenResponse {
-  access_token: string
-  token_type: string
-  scope: string
-}
+import { GithubTokenResponse } from 'src/common/interfaces'
 
 @Injectable()
-export class GithubService {
+export class ThirdAuthService {
   private client_id: string
   private client_secret: string
   private githubAuthUrl: string
@@ -22,8 +17,8 @@ export class GithubService {
     private jwtService: JwtService,
     private redisService: RedisService
   ) {
-    this.client_id = prodKey.client_id
-    this.client_secret = prodKey.client_secret
+    this.client_id = prodAuthKey.client_github_id
+    this.client_secret = prodAuthKey.client_github_secret
     this.githubAuthUrl = 'https://github.com/login/oauth/authorize'
   }
 
