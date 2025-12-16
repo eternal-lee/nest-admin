@@ -16,7 +16,7 @@ import { RedisService } from './redis.service'
             port: 6379
           }
         })
-        await client.connect()
+        // await client.connect()
         client.on('ready', () => {
           console.log('Redis 连接成功')
         })
