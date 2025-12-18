@@ -12,7 +12,7 @@ import { ThirdAuthService } from './thirdAuth.service'
 import { ThirdAuthDto } from './dto/thirdAuth.dto'
 import { Response } from 'express'
 
-@ApiTags('thirdAuth')
+@ApiTags('三方授权')
 @Controller('ThirdAuth')
 export class ThirdAuthController {
   constructor(private thirdAuthService: ThirdAuthService) {}

@@ -27,7 +27,7 @@ import { AuthGuard } from './auth.guard'
 import { CreateUserDto } from './dto/create-user.dto'
 import { UserInterface } from 'src/common/interfaces'
 
-@ApiTags('auth')
+@ApiTags('验权接口')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}

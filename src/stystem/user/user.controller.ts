@@ -19,7 +19,7 @@ import { UserService } from './user.service'
 import { PwdParam } from './dto/modify-pwd.dto'
 import { AuthGuard } from '../auth/auth.guard'
 
-@ApiTags('user')
+@ApiTags('用户信息')
 @UseGuards(AuthGuard)
 @ApiBearerAuth()
 @Controller('user')
