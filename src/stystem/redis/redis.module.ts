@@ -10,20 +10,20 @@ import { RedisService } from './redis.service'
     {
       provide: 'REDIS_CLIENT',
       async useFactory() {
-        const client = createClient({
-          socket: {
-            host: '47.109.60.109',
-            port: 6379
-          }
-        })
+        // const client = createClient({
+        //   socket: {
+        //     host: '47.109.60.109',
+        //     port: 6379
+        //   }
+        // })
         // await client.connect()
-        client.on('ready', () => {
-          console.log('Redis 连接成功')
-        })
-        client.on('error', (err) => {
-          console.error('Redis 连接异常:', err)
-        })
-        return client
+        // client.on('ready', () => {
+        //   console.log('Redis 连接成功')
+        // })
+        // client.on('error', (err) => {
+        //   console.error('Redis 连接异常:', err)
+        // })
+        // return client
       }
     },
     RedisService

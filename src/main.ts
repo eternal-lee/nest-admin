@@ -8,7 +8,7 @@ const port = process.env.port ?? 3001
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true })
   // 设置所有 api 访问前缀
-  app.setGlobalPrefix('/api')
+  app.setGlobalPrefix('/gateway/api')
 
   generateDocument(app)
 
