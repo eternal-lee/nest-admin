@@ -5,4 +5,19 @@ const prodAuthKey = {
   client_qq_id: '102796021'
 }
 
-export { prodAuthKey }
+const wxauthKey = {
+  dev: {
+    appId: '',
+    secret: ''
+  },
+  test: {
+    appId: 'wxdbeccfefbd3da567',
+    secret: 'b0396d7303cad496768cca4c7da7ea53'
+  },
+  prod: {
+    appId: '',
+    secret: ''
+  }
+}
+
+export { prodAuthKey, wxauthKey }
