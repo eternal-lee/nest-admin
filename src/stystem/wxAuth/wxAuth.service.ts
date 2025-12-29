@@ -11,7 +11,7 @@ export class WxAuthService {
   constructor(private readonly httpService: HttpService) {}
 
   /**
-   * 调用微信 stable_token 接口获取公众号 access_token
+   * 调用微信 stable_token 接口获取公众号 access_token（稳定版接口 /cgi-bin/stable_token）
    * @param appid 微信公众号 appid
    * @param secret 微信公众号 secret
    */
@@ -34,6 +34,33 @@ export class WxAuthService {
   }
 
   /**
+   * 获取公众号全局 access_token（标准接口 /cgi-bin/token）
+   * 返回 ResultData.ok(access_token) 或 ResultData.fail
+   */
+  async getAccessToken(appid: string, secret: string): Promise<any> {
+    if (!appid || !secret)
+      return ResultData.fail(HttpStatus.BAD_REQUEST, 'appid 或 secret 不能为空')
+    try {
+      const tokenUrl = `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${appid}&secret=${secret}`
+      const tokenResp = await firstValueFrom(
+        this.httpService.get(tokenUrl, { timeout: 5000 })
+      )
+      const tokenData = tokenResp?.data || {}
+      if (tokenData.errcode || !tokenData.access_token) {
+        return ResultData.fail(
+          HttpStatus.BAD_REQUEST,
+          '获取 access_token 失败',
+          tokenData
+        )
+      }
+      return ResultData.ok(tokenData.access_token, '获取 access_token 成功')
+    } catch (err) {
+      this.logger.error('getAccessToken failed', err)
+      throw err
+    }
+  }
+
+  /**
    * 生成微信 JS-SDK 所需的 wx.config 参数
    * @param url 前端传入的完整 url
    * @param appid 可选，公众号 appid
@@ -42,20 +69,11 @@ export class WxAuthService {
   async getJsSdkConfig(url: string, appid: string, secret: string) {
     if (!url) return ResultData.fail(HttpStatus.BAD_REQUEST, '回调地址不能为空')
     try {
-      // 1. 获取 access_token（使用标准接口）
-      const tokenUrl = `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${appid}&secret=${secret}`
-
-      const tokenResp = await firstValueFrom(
-        this.httpService.get(tokenUrl, { timeout: 5000 })
-      )
-      const accessToken = tokenResp?.data?.access_token
-      if (!accessToken) {
-        return ResultData.fail(
-          HttpStatus.BAD_REQUEST,
-          '获取 access_token 失败',
-          tokenResp?.data
-        )
+      const tokenRes = await this.getAccessToken(appid, secret)
+      if (!tokenRes || tokenRes.code !== 200) {
+        return tokenRes
       }
+      const accessToken = tokenRes.data
 
       // 2. 获取 jsapi_ticket
       const ticketUrl = `https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=${accessToken}&type=jsapi`
@@ -147,6 +165,65 @@ export class WxAuthService {
       return ResultData.ok(userData, '获取用户信息成功')
     } catch (err) {
       this.logger.error('getUserByCode failed', err)
+      throw err
+    }
+  }
+
+  /**
+   * 创建自定义菜单（示例：名称为“首页”，跳转 https://www.xxx.com/）
+   * 如果未提供 accessToken，则使用 appid/secret 获取全局 access_token
+   */
+  async createMenu(appid: string = '', secret: string = ''): Promise<any> {
+    try {
+      if (!appid || !secret) {
+        return ResultData.fail(HttpStatus.BAD_REQUEST, 'appid或secret 不能为空')
+      }
+      const tokenRes = await this.getAccessToken(appid, secret)
+      if (!tokenRes || tokenRes.code !== 200) {
+        return tokenRes
+      }
+      const token = tokenRes.data
+
+      const createUrl = `https://api.weixin.qq.com/cgi-bin/menu/create?access_token=${token}`
+      const menuBody = {
+        button: [
+          {
+            type: 'view',
+            name: '首页',
+            url: 'http://www.ieternal.top/'
+          },
+          {
+            name: '菜单',
+            sub_button: [
+              {
+                type: 'view',
+                name: '组件文档',
+                url: 'http://ieter-ui.ieternal.top/v3/#/home'
+              },
+              {
+                type: 'click',
+                name: '赞一下',
+                key: 'V1001_GOOD'
+              }
+            ]
+          }
+        ]
+      }
+
+      const createResp = await firstValueFrom(
+        this.httpService.post(createUrl, menuBody, { timeout: 5000 })
+      )
+      const createData = createResp?.data || {}
+      if (createData.errcode && createData.errcode !== 0) {
+        return ResultData.fail(
+          HttpStatus.BAD_REQUEST,
+          '创建菜单失败',
+          createData
+        )
+      }
+      return ResultData.ok(createData, '创建菜单成功')
+    } catch (err) {
+      this.logger.error('createMenu failed', err)
       throw err
     }
   }
