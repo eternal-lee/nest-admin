@@ -93,4 +93,61 @@ export class WxAuthService {
       throw err
     }
   }
+
+  /**
+   * 根据前端传入的 code 调用微信 OAuth2 接口获取用户信息
+   * 1) 通过 code 换取 access_token 和 openid
+   * 2) 使用 access_token + openid 获取用户信息
+   */
+  async getUserByCode(
+    code: string,
+    appid: string = '',
+    secret: string = ''
+  ): Promise<any> {
+    if (!code) return ResultData.fail(HttpStatus.BAD_REQUEST, 'code 不能为空')
+    try {
+      const tokenUrl = `https://api.weixin.qq.com/sns/oauth2/access_token?appid=${appid}&secret=${secret}&code=${code}&grant_type=authorization_code`
+      const tokenResp = await firstValueFrom(
+        this.httpService.get(tokenUrl, { timeout: 5000 })
+      )
+
+      const tokenData = tokenResp?.data || {}
+      if (tokenData.errcode) {
+        return ResultData.fail(
+          HttpStatus.BAD_REQUEST,
+          '通过 code 获取 access_token 失败',
+          tokenData
+        )
+      }
+
+      const accessToken = tokenData.access_token
+      const openid = tokenData.openid
+      if (!accessToken || !openid) {
+        return ResultData.fail(
+          HttpStatus.BAD_REQUEST,
+          'access_token 或 openid 丢失',
+          tokenData
+        )
+      }
+
+      const userInfoUrl = `https://api.weixin.qq.com/sns/userinfo?access_token=${accessToken}&openid=${openid}&lang=zh_CN`
+      const userResp = await firstValueFrom(
+        this.httpService.get(userInfoUrl, { timeout: 5000 })
+      )
+
+      const userData = userResp?.data || {}
+      if (userData.errcode) {
+        return ResultData.fail(
+          HttpStatus.BAD_REQUEST,
+          '获取用户信息失败',
+          userData
+        )
+      }
+
+      return ResultData.ok(userData, '获取用户信息成功')
+    } catch (err) {
+      this.logger.error('getUserByCode failed', err)
+      throw err
+    }
+  }
 }

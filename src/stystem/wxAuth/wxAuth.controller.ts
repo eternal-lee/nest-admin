@@ -53,4 +53,11 @@ export class WxAuthController {
   async getConfig(@Query('url') url: string = this.callUrl) {
     return await this.wxAuthService.getJsSdkConfig(url, this.appid, this.secret)
   }
+
+  @HttpCode(HttpStatus.OK)
+  @Get('userInfo')
+  @ApiOperation({ summary: '获取用户信息' })
+  async userInfo(@Query('code') code: string = '') {
+    return await this.wxAuthService.getUserByCode(code, this.appid, this.secret)
+  }
 }
