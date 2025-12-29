@@ -60,4 +60,11 @@ export class WxAuthController {
   async userInfo(@Query('code') code: string = '') {
     return await this.wxAuthService.getUserByCode(code, this.appid, this.secret)
   }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('createMenu')
+  @ApiOperation({ summary: '创建菜单栏' })
+  async createMenu() {
+    return await this.wxAuthService.createMenu(this.appid, this.secret)
+  }
 }
