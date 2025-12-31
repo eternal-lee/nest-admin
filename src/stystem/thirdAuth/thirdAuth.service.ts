@@ -1,7 +1,7 @@
 import { Injectable, HttpStatus } from '@nestjs/common'
 import { HttpService } from '@nestjs/axios'
 import { firstValueFrom } from 'rxjs'
-import { prodAuthKey } from '../../common/thirdAuth/index'
+import { callbackUrl, prodAuthKey } from 'src/common/thirdAuth'
 import { ResultData } from 'src/common/utils/result'
 import { RedisService } from '../redis/redis.service'
 import { JwtService } from '@nestjs/jwt'
@@ -15,7 +15,7 @@ export class ThirdAuthService {
     private jwtService: JwtService,
     private redisService: RedisService
   ) {
-    this.redirect_uri = 'https://www.ieternal.top/callback'
+    this.redirect_uri = callbackUrl
   }
 
   getGithubLoginUrl(redirectUri: string = '') {

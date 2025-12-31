@@ -20,4 +20,6 @@ const wxauthKey = {
   }
 }
 
-export { prodAuthKey, wxauthKey }
+const callbackUrl = 'https://www.ieternal.top/frontend/nuxt/callback'
+
+export { prodAuthKey, wxauthKey, callbackUrl }
