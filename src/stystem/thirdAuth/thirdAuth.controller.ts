@@ -5,9 +5,10 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  Query,
   Res
 } from '@nestjs/common'
-import { ApiOperation, ApiTags } from '@nestjs/swagger'
+import { ApiHeader, ApiOperation, ApiTags } from '@nestjs/swagger'
 import { ThirdAuthService } from './thirdAuth.service'
 import { ThirdAuthDto } from './dto/thirdAuth.dto'
 import { Response } from 'express'
@@ -21,8 +22,16 @@ export class ThirdAuthController {
   @HttpCode(HttpStatus.OK)
   @Get('github')
   @ApiOperation({ summary: '获取github授权地址并自动跳转' })
-  async githubUrl(@Res() res: Response) {
-    const url = await this.thirdAuthService.getGithubLoginUrl()
+  @ApiHeader({
+    name: 'redirect_url',
+    required: false,
+    description: '回调地址'
+  })
+  async githubUrl(
+    @Res() res: Response,
+    @Query('redirect_url') redirect_url?: string
+  ) {
+    const url = await this.thirdAuthService.getGithubLoginUrl(redirect_url)
     return res.redirect(url)
   }
 

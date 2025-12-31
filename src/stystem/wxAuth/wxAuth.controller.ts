@@ -7,10 +7,10 @@ import {
   Get,
   Query
 } from '@nestjs/common'
-import { ApiOperation, ApiTags } from '@nestjs/swagger'
+import { ApiHeader, ApiOperation, ApiTags } from '@nestjs/swagger'
 import { WxAuthService } from './wxAuth.service'
 import { WxConfigDto } from './dto/wx-config.dto'
-import { wxauthKey } from 'src/common/thirdAuth'
+import { callbackUrl, wxauthKey } from 'src/common/thirdAuth'
 import { ResultData } from 'src/common/utils/result'
 
 @ApiTags('微信公众号')
@@ -21,7 +21,7 @@ export class WxAuthController {
   private secret: string
 
   constructor(private readonly wxAuthService: WxAuthService) {
-    this.callUrl = 'https://www.ieternal.top/callback'
+    this.callUrl = callbackUrl
     this.appid = wxauthKey['test'].appId
     this.secret = wxauthKey['test'].secret
   }
@@ -50,8 +50,17 @@ export class WxAuthController {
   @HttpCode(HttpStatus.OK)
   @Get('config')
   @ApiOperation({ summary: '获取公众号 wx.config 参数' })
-  async getConfig(@Query('url') url: string = this.callUrl) {
-    return await this.wxAuthService.getJsSdkConfig(url, this.appid, this.secret)
+  @ApiHeader({
+    name: 'redirect_url',
+    required: false,
+    description: '回调地址'
+  })
+  async getConfig(@Query('redirect_url') redirect_url: string = this.callUrl) {
+    return await this.wxAuthService.getJsSdkConfig(
+      redirect_url,
+      this.appid,
+      this.secret
+    )
   }
 
   @HttpCode(HttpStatus.OK)
