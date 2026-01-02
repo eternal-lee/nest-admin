@@ -70,10 +70,11 @@ export class WxAuthService {
     if (!url) return ResultData.fail(HttpStatus.BAD_REQUEST, '回调地址不能为空')
     try {
       const tokenRes = await this.getStableToken(appid, secret)
-      if (!tokenRes || tokenRes.code !== 200) {
+
+      const accessToken = tokenRes.data.access_token
+      if (!accessToken || tokenRes.code !== 200) {
         return tokenRes
       }
-      const accessToken = tokenRes.data
 
       // 2. 获取 jsapi_ticket
       const ticketUrl = `https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=${accessToken}&type=jsapi`
