@@ -46,8 +46,11 @@ export class ThirdAuthController {
   @HttpCode(HttpStatus.OK)
   @Get('qq')
   @ApiOperation({ summary: '获取QQ授权地址并自动跳转' })
-  async qqUrl(@Res() res: Response) {
-    const url = await this.thirdAuthService.getQQLoginUrl()
+  async qqUrl(
+    @Res() res: Response,
+    @Query('redirect_url') redirect_url?: string
+  ) {
+    const url = await this.thirdAuthService.getQQLoginUrl(redirect_url)
     return res.redirect(url)
   }
 }

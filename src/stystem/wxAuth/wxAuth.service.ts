@@ -69,7 +69,7 @@ export class WxAuthService {
   async getJsSdkConfig(url: string, appid: string, secret: string) {
     if (!url) return ResultData.fail(HttpStatus.BAD_REQUEST, '回调地址不能为空')
     try {
-      const tokenRes = await this.getAccessToken(appid, secret)
+      const tokenRes = await this.getStableToken(appid, secret)
       if (!tokenRes || tokenRes.code !== 200) {
         return tokenRes
       }
@@ -190,7 +190,7 @@ export class WxAuthService {
           {
             type: 'view',
             name: '首页',
-            url: 'http://www.ieternal.top/'
+            url: 'http://www.ieternal.top/index.html'
           },
           {
             name: '菜单',
@@ -199,6 +199,11 @@ export class WxAuthService {
                 type: 'view',
                 name: '组件文档',
                 url: 'http://ieter-ui.ieternal.top/v3/#/home'
+              },
+              {
+                type: 'view',
+                name: '登录',
+                url: 'http://www.ieternal.top/frontend/nuxt/login'
               },
               {
                 type: 'click',
