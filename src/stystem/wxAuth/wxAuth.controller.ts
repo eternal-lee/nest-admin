@@ -7,7 +7,7 @@ import {
   Get,
   Query
 } from '@nestjs/common'
-import { ApiHeader, ApiOperation, ApiTags } from '@nestjs/swagger'
+import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger'
 import { WxAuthService } from './wxAuth.service'
 import { WxConfigDto } from './dto/wx-config.dto'
 import { callbackUrl, wxauthKey } from 'src/common/thirdAuth'
@@ -50,7 +50,7 @@ export class WxAuthController {
   @HttpCode(HttpStatus.OK)
   @Get('config')
   @ApiOperation({ summary: '获取公众号 wx.config 参数' })
-  @ApiHeader({
+  @ApiQuery({
     name: 'redirect_url',
     required: false,
     description: '回调地址'

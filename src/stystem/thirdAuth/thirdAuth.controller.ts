@@ -8,10 +8,10 @@ import {
   Query,
   Res
 } from '@nestjs/common'
-import { ApiHeader, ApiOperation, ApiTags } from '@nestjs/swagger'
+import { ApiOperation, ApiTags, ApiQuery } from '@nestjs/swagger'
 import { ThirdAuthService } from './thirdAuth.service'
 import { ThirdAuthDto } from './dto/thirdAuth.dto'
-import { Response } from 'express'
+import { Response, Request } from 'express'
 
 @ApiTags('三方授权')
 @Controller('ThirdAuth')
@@ -22,10 +22,10 @@ export class ThirdAuthController {
   @HttpCode(HttpStatus.OK)
   @Get('github')
   @ApiOperation({ summary: '获取github授权地址并自动跳转' })
-  @ApiHeader({
+  @ApiQuery({
     name: 'redirect_url',
     required: false,
-    description: '回调地址'
+    description: '回调地址，示例: https://yourdomain.com/callback'
   })
   async githubUrl(
     @Res() res: Response,
@@ -43,6 +43,11 @@ export class ThirdAuthController {
   }
 
   // QQ授权
+  @ApiQuery({
+    name: 'redirect_url',
+    required: false,
+    description: '回调地址，示例: https://yourdomain.com/callback'
+  })
   @HttpCode(HttpStatus.OK)
   @Get('qq')
   @ApiOperation({ summary: '获取QQ授权地址并自动跳转' })
