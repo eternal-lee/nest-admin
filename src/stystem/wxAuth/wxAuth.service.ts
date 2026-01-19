@@ -194,6 +194,11 @@ export class WxAuthService {
             url: 'http://www.ieternal.top/index.html'
           },
           {
+            type: 'view',
+            name: 'H5跳xcx',
+            url: 'http://www.ieternal.top/tools/wxToxcx.html'
+          },
+          {
             name: '菜单',
             sub_button: [
               {
